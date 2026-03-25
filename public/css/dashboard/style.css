@@ -1,0 +1,285 @@
+@import 'tailwindcss';
+
+/* ================= LOADER ================= */
+#loader {
+    position: fixed;
+    inset: 0;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition:
+        opacity 0.6s ease,
+        visibility 0.6s ease;
+}
+
+#loader.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loader-circle {
+    width: 80px;
+    height: 80px;
+    border: 6px solid #e5e7eb;
+    border-top: 6px solid #2563eb;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ================= GLOBAL BACKGROUND ================= */
+body {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 40%, #ffffff 100%);
+    transition:
+        background 0.6s ease,
+        color 0.6s ease;
+}
+
+/* ================= DARK BACKGROUND ================= */
+.dark body {
+    background:
+        radial-gradient(
+            circle at 20% 30%,
+            rgba(59, 130, 246, 0.15),
+            transparent 40%
+        ),
+        radial-gradient(
+            circle at 80% 70%,
+            rgba(37, 99, 235, 0.15),
+            transparent 40%
+        ),
+        linear-gradient(180deg, #0f172a 0%, #111827 50%, #0b1120 100%);
+}
+
+/* ================= GLASS NAVBAR ================= */
+nav {
+    backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.7);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    transition: all 0.4s ease;
+}
+
+.dark nav {
+    background: rgba(15, 23, 42, 0.85);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Navbar links dark mode */
+.dark nav a {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+
+aside#sidebar a, body[style*="#22c55e"] a {
+  transition: all 0.3s ease;
+}
+
+body[style*="#22c55e"] aside#sidebar a:hover,
+body[style*="#a855f7"] aside#sidebar a:hover,
+body[style*="#3b82f6"] aside#sidebar a:hover {
+  background-color: var(--nav-hover-color, #22c55e) !important;
+  color: white !important;
+  border-left: 4px solid var(--nav-hover-color, #22c55e) !important;
+}
+
+
+
+
+    color: var(--nav-hover-color, rgba(96, 165, 250, 1));
+}
+
+/* Remove the default browser focus outline that appears as a blue rectangle */
+nav a:focus,
+nav a:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* ================= HERO TEXT ================= */
+.hero-main {
+    background: linear-gradient(90deg, #0f172a, #2563eb);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hero-sub {
+    background: linear-gradient(90deg, #2563eb, #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 2px 6px rgba(59, 130, 246, 0.18);
+}
+
+.dark .hero-main {
+    background: linear-gradient(90deg, #ffffff, #bfdbfe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 2px 10px rgba(59, 130, 246, 0.25);
+}
+
+.dark .hero-sub {
+    background: linear-gradient(90deg, #93c5fd, #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 2px 12px rgba(59, 130, 246, 0.25);
+}
+
+/* ================= SCROLL REVEAL ================= */
+.reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ================= CARD EFFECT ================= */
+.card-hover {
+    transition: all 0.4s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 50px rgba(37, 99, 235, 0.15);
+}
+
+/* ================= RIPPLE BUTTON ================= */
+.ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple span {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* ================= DARK TOGGLE ANIMATION ================= */
+.dark-toggle {
+    transition: all 0.4s ease;
+}
+
+.dark-toggle.animate {
+    transform: rotate(180deg) scale(1.2);
+}
+
+section,
+footer {
+    transition:
+        background 0.6s ease,
+        color 0.6s ease;
+}
+
+/* HAMBURGER */
+/* underline hover */
+.nav-link {
+    position: relative;
+    color: inherit;
+    transition: 0.3s;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 0%;
+    height: 2px;
+    background: #2563eb;
+    transition: 0.3s;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+/* hamburger */
+.bar {
+    width: 22px;
+    height: 2px;
+    background: currentColor;
+    transition: 0.3s;
+}
+
+/* morph X */
+.menu-open .bar:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+}
+.menu-open .bar:nth-child(2) {
+    opacity: 0;
+}
+.menu-open .bar:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+}
+
+/* ================= SCROLL REVEAL ================= */
+html {
+    scroll-behavior: smooth;
+}
+
+.reveal {
+    opacity: 0;
+    transform: translateY(60px) scale(0.98);
+    transition: all 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, opacity;
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.reveal-left {
+    opacity: 0;
+    transform: translateX(-60px);
+    transition: all 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-right {
+    opacity: 0;
+    transform: translateX(60px);
+    transition: all 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-left.active,
+.reveal-right.active {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* FontAwesome dark mode fix (keep icons colorful via Tailwind text-* on the icon).
+   Some pages load FontAwesome which can force its own color and makes icons appear black. */
+.dark i.fa-solid:not([class*="text-red-"]):not([class*="text-blue-"]):not([class*="text-green-"]):not([class*="text-indigo-"]):not([class*="text-purple-"]):not([class*="text-violet-"]):not([class*="text-orange-"]):not([class*="text-emerald-"]):not([class*="text-gray-"]):not([class*="text-white"]):not([class*="text-black"]):not([class*="text-yellow-"]):not([class*="text-amber-"]) ,
+.dark i.fa-regular:not([class*="text-red-"]):not([class*="text-blue-"]):not([class*="text-green-"]):not([class*="text-indigo-"]):not([class*="text-purple-"]):not([class*="text-violet-"]):not([class*="text-orange-"]):not([class*="text-emerald-"]):not([class*="text-gray-"]):not([class*="text-white"]):not([class*="text-black"]):not([class*="text-yellow-"]):not([class*="text-amber-"]) ,
+.dark i.fa-brands:not([class*="text-red-"]):not([class*="text-blue-"]):not([class*="text-green-"]):not([class*="text-indigo-"]):not([class*="text-purple-"]):not([class*="text-violet-"]):not([class*="text-orange-"]):not([class*="text-emerald-"]):not([class*="text-gray-"]):not([class*="text-white"]):not([class*="text-black"]):not([class*="text-yellow-"]):not([class*="text-amber-"]) {
+    color: inherit !important;
+}

@@ -1,0 +1,61 @@
+/* Prevent horizontal page scroll on small viewports / long URLs */
+html {
+    overflow-x: clip;
+    max-width: 100%;
+}
+body {
+    overflow-x: clip;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+.dark ::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+.dark ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+}
+
+/* Glassmorphism */
+.glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.dark .glass {
+    background: rgba(17, 24, 39, 0.7);
+}
+
+/* Dropdown animation */
+.dropdown-menu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+.dropdown-menu.open {
+    max-height: 200px;
+}
+
+/* Fix FontAwesome icons turning black in dark mode.
+   FontAwesome sometimes applies its own `color`, overriding Tailwind's dark:text-*.
+   In practice, forcing `color` for all icons can wash out Tailwind's
+   `dark:text-*` colors. Apply the override only when the icon does not have
+   an explicit Tailwind text color utility. */
+.dark i.fa-solid:not([class*="text-red-"]):not([class*="text-blue-"]):not([class*="text-green-"]):not([class*="text-indigo-"]):not([class*="text-purple-"]):not([class*="text-violet-"]):not([class*="text-orange-"]):not([class*="text-emerald-"]):not([class*="text-gray-"]):not([class*="text-white"]):not([class*="text-black"]),
+.dark i.fa-regular:not([class*="text-red-"]):not([class*="text-blue-"]):not([class*="text-green-"]):not([class*="text-indigo-"]):not([class*="text-purple-"]):not([class*="text-violet-"]):not([class*="text-orange-"]):not([class*="text-emerald-"]):not([class*="text-gray-"]):not([class*="text-white"]):not([class*="text-black"]),
+.dark i.fa-brands:not([class*="text-red-"]):not([class*="text-blue-"]):not([class*="text-green-"]):not([class*="text-indigo-"]):not([class*="text-purple-"]):not([class*="text-violet-"]):not([class*="text-orange-"]):not([class*="text-emerald-"]):not([class*="text-gray-"]):not([class*="text-white"]):not([class*="text-black"]) {
+    color: inherit !important;
+}

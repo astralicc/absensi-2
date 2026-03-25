@@ -1,0 +1,42 @@
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+.dark ::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+.dark ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+}
+
+/* Glassmorphism */
+.glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.dark .glass {
+    background: rgba(17, 24, 39, 0.7);
+}
+
+#darkBtn {
+    display: inline-block;
+    transform: rotate(0deg);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+#darkBtn.animate {
+    transform: rotate(180deg) scale(1.2);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+}

@@ -1,0 +1,43 @@
+.fade {
+    opacity: 0;
+    transform: translateY(5px);
+    transition: 0.25s ease;
+}
+
+/* ================= DARK BACKGROUND ================= */
+.dark body {
+    background:
+        radial-gradient(
+            circle at 20% 30%,
+            rgba(59, 130, 246, 0.15),
+            transparent 40%
+        ),
+        radial-gradient(
+            circle at 80% 70%,
+            rgba(37, 99, 235, 0.15),
+            transparent 40%
+        ),
+        linear-gradient(180deg, #0f172a 0%, #111827 50%, #0b1120 100%);
+}
+
+/* ANIMASI TOGGLE DARK MODE */
+
+#darkBtn {
+    transition:
+        transform 0.4s ease,
+        box-shadow 0.4s ease;
+}
+
+#darkBtn.animate {
+    transform: rotate(180deg) scale(1.2);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+}
+
+/* Dark Toggle Animation Classes */
+.dark-toggle {
+    transition: all 0.4s ease;
+}
+
+.dark-toggle.animate {
+    transform: rotate(180deg) scale(1.2);
+}

@@ -1,0 +1,15 @@
+
+>   Route::middleware(['auth', 'wali-kelas'])->prefix('wali-kelas')->name('wali-kelas.')->group(function () {
+      Route::get('/', [WaliKelasController::class, 'waliDashboard'])->name('index');
+      Route::get('/siswa', [StudentListController::class, 'index'])->name('students');
+    });
+  
+    // Orang Tua Routes
+    Route::middleware('role:' . User::ROLE_ORANGTUA)->group(function () {
+      Route::get('/data-anak', [ChildDataController::class, 'index'])
+        ->name('children.data');
+      Route::get('/data-anak/{id}', [ChildDataController::class, 'show'])
+        ->name('children.show');
+
+
+
