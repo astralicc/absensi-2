@@ -40,19 +40,12 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Google OAuth Routes
-Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('google.login');
-Route::get('/auth/google/signup', [AuthController::class, 'redirectToGoogleSignup'])->name('google.signup');
-Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('google.callback');
+
 
 Route::get('/signup', [AuthController::class, 'showSignupForm'])->name('signup');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 
-// Complete Profile Routes (for Google OAuth users with incomplete data)
-Route::get('/lengkapi-profil', [AuthController::class, 'showCompleteProfileForm'])
-  ->name('complete-profile');
-Route::post('/lengkapi-profil', [AuthController::class, 'completeProfile'])
-  ->name('complete-profile.post');
+
 
 // Hidden Admin Routes (not exposed in public UI)
 

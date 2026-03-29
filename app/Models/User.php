@@ -66,9 +66,7 @@ class User extends Authenticatable
         'device_user_id',
         'parent_id',
         'nisn',
-        'google_id',
-        'google_token',
-        'avatar',
+
         'phone',
         'address',
         'class',

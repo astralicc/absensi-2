@@ -259,21 +259,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Handle Google Signup Data Auto-fill
-    const googleIdField = document.getElementById('googleId');
-    const nisnFromGoogle = document.getElementById('nisnFromGoogle');
-    const nameInput = document.getElementById('nameInput');
-    const emailInput = document.getElementById('emailInput');
-    
-    if (googleIdField && googleIdField.value) {
-        // This is a Google signup flow
-        console.log('Google signup data detected');
-        
-        // Auto-fill NISN if available from Google
-        if (nisnFromGoogle && nisnFromGoogle.value && nisnInput) {
-            nisnInput.value = nisnFromGoogle.value;
-            // Add visual indicator that NISN is auto-filled
-            nisnInput.classList.add('bg-green-50', 'dark:bg-green-900/20', 'border-green-300', 'dark:border-green-600');
-        }
-    }
 });

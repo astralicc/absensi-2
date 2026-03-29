@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Laravel\Socialite\Facades\Socialite;
+
 
 class AuthController extends Controller
 {
@@ -87,27 +87,10 @@ class AuthController extends Controller
       $userData['jurusan'] = $validated['jurusan'];
     }
 
-    // Add Google data if available (from Google signup flow)
-    if ($request->has('google_id') && $request->has('google_token')) {
-      $userData['google_id'] = $request->google_id;
-      $userData['google_token'] = $request->google_token;
-      
-      if ($request->has('avatar')) {
-        $userData['avatar'] = $request->avatar;
-      }
-      
-      \Log::info("User registered with Google OAuth - Email: {$validated['email']}");
-    }
-
     $user = User::create($userData);
 
     // Log registration
     \Log::info("New user registered - Name: {$user->name}, Email: {$user->email}, Role: {$user->role}, NISN: " . ($user->nisn ?? 'N/A'));
-
-    // Clear Google signup session data
-    if (session()->has('google_signup_data')) {
-      session()->forget('google_signup_data');
-    }
 
     // Auto login after registration
     Auth::login($user);
@@ -116,167 +99,6 @@ class AuthController extends Controller
 
     // Redirect based on role
     return $this->redirectBasedOnRole($user);
-  }
-
-  /**
-   * Redirect to Google for OAuth authentication (Login)
-   */
-  public function redirectToGoogle()
-  {
-    session(['google_auth_type' => 'login']);
-    return Socialite::driver('google')->redirect();
-  }
-
-  /**
-   * Redirect to Google for OAuth authentication (Signup)
-   */
-  public function redirectToGoogleSignup()
-  {
-    session(['google_auth_type' => 'signup']);
-    return Socialite::driver('google')->redirect();
-  }
-
-  /**
-   * Handle Google OAuth callback
-   */
-  public function handleGoogleCallback()
-  {
-    try {
-      $googleUser = Socialite::driver('google')->user();
-      
-      $authType = session('google_auth_type', 'login');
-      
-      // If signup flow, store data and redirect to signup form
-      if ($authType === 'signup') {
-        return $this->handleGoogleSignupCallback($googleUser);
-      }
-      
-      // Find or create user based on Google email
-      $user = $this->findOrCreateGoogleUser($googleUser);
-      
-      if (!$user) {
-        return redirect()->route('login')
-          ->withErrors(['email' => 'Akun Google tidak terdaftar dalam sistem. Silakan hubungi admin.']);
-      }
-      
-      // Log the login attempt
-      $this->logLoginAttempt($user, request(), true);
-      
-      // Authenticate user
-      Auth::login($user, true);
-      
-      // Regenerate session for security
-      request()->session()->regenerate();
-      
-      // Redirect based on role
-      return $this->redirectBasedOnRole($user);
-      
-    } catch (\Exception $e) {
-      Log::error('Google login error: ' . $e->getMessage());
-      return redirect()->route('login')
-        ->withErrors(['email' => 'Terjadi kesalahan saat login dengan Google. Silakan coba lagi.']);
-    }
-  }
-
-  /**
-   * Handle Google OAuth callback for signup flow
-   */
-  private function handleGoogleSignupCallback($googleUser)
-  {
-    // Check if user already exists
-    $existingUser = User::where('email', $googleUser->email)->first();
-    
-    if ($existingUser) {
-      return redirect()->route('signup')
-        ->withErrors(['email' => 'Email ini sudah terdaftar. Silakan login saja.']);
-    }
-    
-    // Extract NISN from Google user data if available
-    // Google doesn't provide NISN directly, but we can try to get it from custom claims or user metadata
-    $nisn = $this->extractNisnFromGoogleUser($googleUser);
-    
-    // Store Google data in session for pre-filling signup form
-    session([
-      'google_signup_data' => [
-        'name' => $googleUser->name,
-        'email' => $googleUser->email,
-        'google_id' => $googleUser->id,
-        'google_token' => $googleUser->token,
-        'avatar' => $googleUser->avatar,
-        'nisn' => $nisn, // May be null if not available
-      ]
-    ]);
-    
-    \Log::info("Google signup data stored for email: {$googleUser->email}, NISN: " . ($nisn ?? 'N/A'));
-    
-    // Redirect to signup form with pre-filled data
-    return redirect()->route('signup');
-  }
-
-  /**
-   * Extract NISN from Google user data
-   * Note: Standard Google OAuth doesn't provide NISN.
-   * This method attempts to extract from custom claims or returns null.
-   */
-  private function extractNisnFromGoogleUser($googleUser): ?string
-  {
-    // Try to get NISN from user attributes if available
-    // Some educational Google Workspace domains may include custom claims
-    
-    // Check if there's any custom data in the user object
-    if (isset($googleUser->user['nisn'])) {
-      return $googleUser->user['nisn'];
-    }
-    
-    // For akun belajar.id integration, NISN might be in a specific claim
-    // This would require custom configuration with the education provider
-    
-    return null;
-  }
-
-  /**
-   * Find or create user from Google OAuth data
-   */
-  private function findOrCreateGoogleUser($googleUser): ?User
-  {
-    // First, try to find user by Google ID
-    $user = User::where('google_id', $googleUser->id)->first();
-    
-    if ($user) {
-      return $user;
-    }
-    
-    // Try to find user by email
-    $user = User::where('email', $googleUser->email)->first();
-    
-    if ($user) {
-      // Link Google account to existing user
-      $user->update([
-        'google_id' => $googleUser->id,
-        'google_token' => $googleUser->token,
-        'avatar' => $googleUser->avatar,
-      ]);
-      return $user;
-    }
-    
-    // Auto-create new user from Google data
-    // Generate a unique identifier from Google ID
-    $identifier = 'G' . substr($googleUser->id, -8);
-    
-    $user = User::create([
-      'name' => $googleUser->name,
-      'email' => $googleUser->email,
-      'password' => Hash::make(Str::random(16)), // Random password, user will use Google login
-      'role' => User::ROLE_MURID, // Default role, admin can change later
-      'device_user_id' => $identifier,
-      'google_id' => $googleUser->id,
-      'google_token' => $googleUser->token,
-      'avatar' => $googleUser->avatar,
-    ]);
-    
-    \Log::info("New user auto-created from Google OAuth - Name: {$user->name}, Email: {$user->email}, ID: {$user->id}");
-    
-    return $user;
   }
 
   /**
