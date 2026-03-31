@@ -3,47 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use App\Models\User;
+use App\Models\Siswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ChildDataController extends Controller
 {
-  /**
-   * Show child data for Orang Tua (Parent)
-   */
   public function index()
   {
-    $user = Auth::user();
+    $user = Auth::guard('ortu')->user();
 
-    // Get all children of this parent
-    $children = User::where('parent_id', $user->id)
-      ->where('role', User::ROLE_MURID)
-      ->get();
+    $children = Siswa::where('parent_id', $user->id)->get();
 
-    // Calculate statistics for each child
     $childrenStats = [];
     foreach ($children as $child) {
       $totalDays = Attendance::where('user_id', $child->id)
-        ->whereMonth('date', now()->month)
-        ->count();
-
+        ->whereMonth('date', now()->month)->count();
       $presentDays = Attendance::where('user_id', $child->id)
-        ->whereMonth('date', now()->month)
-        ->whereNotNull('check_in')
-        ->count();
-
+        ->whereMonth('date', now()->month)->whereNotNull('check_in')->count();
       $lateDays = Attendance::where('user_id', $child->id)
-        ->whereMonth('date', now()->month)
-        ->whereTime('check_in', '>', '07:30:00')
-        ->count();
-
+        ->whereMonth('date', now()->month)->whereTime('check_in', '>', '07:30:00')->count();
       $attendanceRate = $totalDays > 0 ? round(($presentDays / $totalDays) * 100) : 0;
 
-      // Get today's attendance
       $todayAttendance = Attendance::where('user_id', $child->id)
-        ->where('date', today())
-        ->first();
+        ->where('date', today())->first();
 
       $childrenStats[$child->id] = [
         'totalDays' => $totalDays,
@@ -62,38 +45,22 @@ class ChildDataController extends Controller
     ]);
   }
 
-  /**
-   * Show detail for specific child
-   */
   public function show($id)
   {
-    $user = Auth::user();
+    $user = Auth::guard('ortu')->user();
 
-    // Verify this child belongs to the parent
-    $child = User::where('id', $id)
+    $child = Siswa::where('id', $id)
       ->where('parent_id', $user->id)
-      ->where('role', User::ROLE_MURID)
       ->firstOrFail();
 
-    // Get monthly statistics
     $monthlyStats = [];
     for ($i = 1; $i <= 12; $i++) {
       $totalDays = Attendance::where('user_id', $child->id)
-        ->whereMonth('date', $i)
-        ->whereYear('date', now()->year)
-        ->count();
-
+        ->whereMonth('date', $i)->whereYear('date', now()->year)->count();
       $presentDays = Attendance::where('user_id', $child->id)
-        ->whereMonth('date', $i)
-        ->whereYear('date', now()->year)
-        ->whereNotNull('check_in')
-        ->count();
-
+        ->whereMonth('date', $i)->whereYear('date', now()->year)->whereNotNull('check_in')->count();
       $lateDays = Attendance::where('user_id', $child->id)
-        ->whereMonth('date', $i)
-        ->whereYear('date', now()->year)
-        ->whereTime('check_in', '>', '07:30:00')
-        ->count();
+        ->whereMonth('date', $i)->whereYear('date', now()->year)->whereTime('check_in', '>', '07:30:00')->count();
 
       $monthlyStats[$i] = [
         'month' => $i,
@@ -105,11 +72,8 @@ class ChildDataController extends Controller
       ];
     }
 
-    // Get recent attendance
     $recentAttendances = Attendance::where('user_id', $child->id)
-      ->orderBy('date', 'desc')
-      ->take(10)
-      ->get();
+      ->orderBy('date', 'desc')->take(10)->get();
 
     return view('children.show', [
       'child' => $child,
@@ -119,26 +83,13 @@ class ChildDataController extends Controller
     ]);
   }
 
-  /**
-   * Get month name in Indonesian
-   */
   private function getMonthName($month)
   {
     $months = [
-      1 => 'Januari',
-      2 => 'Februari',
-      3 => 'Maret',
-      4 => 'April',
-      5 => 'Mei',
-      6 => 'Juni',
-      7 => 'Juli',
-      8 => 'Agustus',
-      9 => 'September',
-      10 => 'Oktober',
-      11 => 'November',
-      12 => 'Desember',
+      1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+      5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+      9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
     ];
-
     return $months[$month] ?? '';
   }
 }

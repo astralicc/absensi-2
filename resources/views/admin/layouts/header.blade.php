@@ -20,11 +20,13 @@
         <!-- User Profile -->
         <div class="flex items-center gap-2 sm:gap-3 sm:pl-4 sm:border-l border-gray-200 dark:border-gray-700">
             <div class="text-right hidden sm:block max-w-[10rem] lg:max-w-none">
-                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ auth()->user()->name }}</p>
+
+                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ Auth::user()?->name ?? 'Admin' }}</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">Administrator</p>
+
             </div>
             <div class="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold text-sm shrink-0">
-                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                {{ strtoupper(substr(Auth::user()?->name ?? 'Admin', 0, 1)) }}
             </div>
         </div>
     </div>

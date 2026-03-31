@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Attendance;
 use App\Models\DeviceLog;
-use App\Models\User;
+use App\Models\Siswa;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -37,7 +37,7 @@ class AttendanceController extends Controller
         ]);
 
         // 2. Find user based on device_user_id
-        $user = User::where('device_user_id', $request->device_user_id)->first();
+        $user = Siswa::where('nis', $request->device_user_id)->first();
 
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
@@ -81,7 +81,7 @@ class AttendanceController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Attendance::query()->with('user:id,name,email,device_user_id'); // eager load user
+        $query = Attendance::query()->with('siswa:id,name,email,nis'); // eager load siswa
 
         // Filter by date
         if ($request->has('date')) {

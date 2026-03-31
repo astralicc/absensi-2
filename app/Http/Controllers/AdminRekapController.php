@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use App\Models\User;
+use App\Models\Siswa;
 use Illuminate\Http\Request;
 use App\Exports\AbsensiExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -42,7 +42,7 @@ class AdminRekapController extends Controller
     }
 
     // Filter dropdown lists
-    $kelasList = User::where('role', User::ROLE_MURID)
+    $kelasList = Siswa::query()
       ->when(!empty($jurusan), fn($q) => $q->where('jurusan', $jurusan))
       ->distinct()
       ->pluck('class')
@@ -51,7 +51,7 @@ class AdminRekapController extends Controller
       ->sort()
       ->toArray();
 
-    $jurusanList = User::where('role', User::ROLE_MURID)
+    $jurusanList = Siswa::query()
       ->when(!empty($kelas), fn($q) => $q->where('class', $kelas))
       ->distinct()
       ->pluck('jurusan')

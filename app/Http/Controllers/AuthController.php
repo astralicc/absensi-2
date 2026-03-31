@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\Siswa;
+use App\Models\Guru;
+use App\Models\Admin;
+use App\Models\OrangTua;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -12,18 +15,8 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-
 class AuthController extends Controller
 {
-  /**
-   * Role mapping for validation
-   */
-  private const ROLE_MAPPING = [
-    'Murid' => User::ROLE_MURID,
-    'Guru' => User::ROLE_GURU,
-    'Orang Tua' => User::ROLE_ORANGTUA,
-  ];
-
   /**
    * Show login form
    */
@@ -53,52 +46,57 @@ class AuthController extends Controller
    */
   public function register(Request $request)
   {
-    // Validate request
     $validated = $request->validate([
       'role' => ['required', 'string', 'in:Murid,Guru,Orang Tua'],
       'name' => ['required', 'string', 'max:255'],
-      'email' => ['required', 'email', 'unique:users,email'],
-      'identifier' => ['required', 'string', 'min:3', 'max:50', 'unique:users,device_user_id'],
+      'email' => ['required', 'email'],
+      'identifier' => ['required', 'string', 'min:3', 'max:50'],
       'nisn' => ['nullable', 'string', 'max:20', 'required_if:role,Murid'],
       'child_name' => ['nullable', 'string', 'max:100', 'required_if:role,Orang Tua'],
-      'class' => ['exclude_unless:role,Murid', 'required', Rule::in(User::getClasses())],
-      'jurusan' => ['exclude_unless:role,Murid', 'required', Rule::in(User::getJurusans())],
+      'class' => ['exclude_unless:role,Murid', 'required', Rule::in(Siswa::getClasses())],
+      'jurusan' => ['exclude_unless:role,Murid', 'required', Rule::in(Siswa::getJurusans())],
       'password' => ['required', 'string', 'min:6', 'confirmed'],
     ]);
 
-    $role = self::ROLE_MAPPING[$validated['role']];
+    $role = $validated['role'];
 
-    // Create new user
-    $userData = [
-      'name' => $validated['name'],
-      'email' => $validated['email'],
-      'password' => Hash::make($validated['password']),
-      'role' => $role,
-      'device_user_id' => $validated['identifier'],
-    ];
-
-    // Add NISN if provided (for Murid)
-    if (!empty($validated['nisn'])) {
-      $userData['nisn'] = $validated['nisn'];
+    if ($role === 'Murid') {
+      $user = Siswa::create([
+        'name' => $validated['name'],
+        'email' => $validated['email'],
+        'password' => $validated['password'],
+        'nis' => $validated['identifier'],
+        'nisn' => $validated['nisn'] ?? null,
+        'class' => $validated['class'],
+        'jurusan' => $validated['jurusan'],
+      ]);
+      Auth::guard('web')->login($user);
+      $redirect = redirect()->intended(route('dashboard.murid'));
+    } elseif ($role === 'Guru') {
+      $user = Guru::create([
+        'name' => $validated['name'],
+        'email' => $validated['email'],
+        'password' => $validated['password'],
+        'nip' => $validated['identifier'],
+      ]);
+      Auth::guard('guru')->login($user);
+      $redirect = redirect()->intended(route('dashboard.guru'));
+    } else {
+      // Orang Tua
+      $user = OrangTua::create([
+        'name' => $validated['name'],
+        'email' => $validated['email'],
+        'password' => $validated['password'],
+        'id_ortu' => $validated['identifier'],
+      ]);
+      Auth::guard('ortu')->login($user);
+      $redirect = redirect()->intended(route('dashboard.orangtua'));
     }
 
-    if ($role === User::ROLE_MURID) {
-      $userData['class'] = $validated['class'];
-      $userData['jurusan'] = $validated['jurusan'];
-    }
-
-    $user = User::create($userData);
-
-    // Log registration
-    \Log::info("New user registered - Name: {$user->name}, Email: {$user->email}, Role: {$user->role}, NISN: " . ($user->nisn ?? 'N/A'));
-
-    // Auto login after registration
-    Auth::login($user);
-
+    Log::info("New user registered - Name: {$user->name}, Email: {$user->email}, Role: {$role}");
     $request->session()->regenerate();
 
-    // Redirect based on role
-    return $this->redirectBasedOnRole($user);
+    return $redirect;
   }
 
   /**
@@ -106,7 +104,6 @@ class AuthController extends Controller
    */
   public function adminLogin(Request $request)
   {
-    // Validate request
     $validated = $request->validate([
       'email' => ['required', 'email'],
       'password' => ['required', 'string', 'min:6'],
@@ -117,10 +114,8 @@ class AuthController extends Controller
     $password = $validated['password'];
     $remember = $validated['remember'] ?? false;
 
-    // Rate limiting key based on email and IP
     $throttleKey = 'admin|' . Str::lower($email) . '|' . $request->ip();
 
-    // Check rate limiting (5 attempts per minute)
     if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
       $seconds = RateLimiter::availableIn($throttleKey);
       throw ValidationException::withMessages([
@@ -128,39 +123,28 @@ class AuthController extends Controller
       ]);
     }
 
-    // Find admin user by email
-    $user = User::where('email', $email)
-      ->where('role', User::ROLE_ADMIN)
-      ->first();
+    $admin = Admin::where('email', $email)->first();
 
-    if (!$user) {
+    if (!$admin) {
       RateLimiter::hit($throttleKey);
       throw ValidationException::withMessages([
         'email' => 'Email admin tidak ditemukan.',
       ]);
     }
 
-    // Verify password
-    if (!Hash::check($password, $user->password)) {
+    if (!Hash::check($password, $admin->password)) {
       RateLimiter::hit($throttleKey);
       throw ValidationException::withMessages([
         'password' => 'Password yang dimasukkan salah.',
       ]);
     }
 
-    // Clear rate limiter on successful login
     RateLimiter::clear($throttleKey);
+    Log::info("Login attempt [SUCCESS] - User: {$admin->email}, Role: admin, IP: {$request->ip()}");
 
-    // Log the login attempt (successful)
-    $this->logLoginAttempt($user, $request, true);
-
-    // Authenticate user
-    Auth::login($user, $remember);
-
-    // Regenerate session for security
+    Auth::guard('admin')->login($admin, $remember);
     $request->session()->regenerate();
 
-    // Redirect to admin dashboard
     return redirect()->intended(route('admin.dashboard'));
   }
 
@@ -169,7 +153,6 @@ class AuthController extends Controller
    */
   public function login(Request $request)
   {
-    // Validate request
     $validated = $request->validate([
       'role' => ['required', 'string', 'in:Murid,Guru,Orang Tua'],
       'identifier' => ['required', 'string', 'min:3', 'max:50'],
@@ -183,13 +166,8 @@ class AuthController extends Controller
     $password = $validated['password'];
     $remember = $validated['remember'] ?? false;
 
-    // Map role to database role
-    $dbRole = self::ROLE_MAPPING[$role];
+    $throttleKey = Str::lower($role) . '|' . Str::lower($identifier) . '|' . $request->ip();
 
-    // Rate limiting key based on role, identifier and IP
-    $throttleKey = Str::lower($dbRole) . '|' . Str::lower($identifier) . '|' . $request->ip();
-
-    // Check rate limiting (5 attempts per minute)
     if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
       $seconds = RateLimiter::availableIn($throttleKey);
       throw ValidationException::withMessages([
@@ -197,8 +175,32 @@ class AuthController extends Controller
       ]);
     }
 
-    // Find user based on role and identifier
-    $user = $this->findUserByRoleAndIdentifier($dbRole, $identifier);
+    // Find user by role and identifier
+    $user = null;
+    $guard = 'web';
+    $redirectRoute = 'dashboard';
+
+    if ($role === 'Murid') {
+      $user = Siswa::where('email', $identifier)
+        ->orWhere('nisn', $identifier)
+        ->orWhere('nis', $identifier)
+        ->first();
+      $guard = 'web';
+      $redirectRoute = 'dashboard.murid';
+    } elseif ($role === 'Guru') {
+      $user = Guru::where('email', $identifier)
+        ->orWhere('nip', $identifier)
+        ->first();
+      $guard = 'guru';
+      $redirectRoute = 'dashboard.guru';
+    } else {
+      // Orang Tua
+      $user = OrangTua::where('email', $identifier)
+        ->orWhere('id_ortu', $identifier)
+        ->first();
+      $guard = 'ortu';
+      $redirectRoute = 'dashboard.orangtua';
+    }
 
     if (!$user) {
       RateLimiter::hit($throttleKey);
@@ -207,7 +209,6 @@ class AuthController extends Controller
       ]);
     }
 
-    // Verify password
     if (!Hash::check($password, $user->password)) {
       RateLimiter::hit($throttleKey);
       throw ValidationException::withMessages([
@@ -215,83 +216,13 @@ class AuthController extends Controller
       ]);
     }
 
-    // Check if user role matches
-    if ($user->role !== $dbRole) {
-      RateLimiter::hit($throttleKey);
-      throw ValidationException::withMessages([
-        'role' => 'Peran pengguna tidak sesuai dengan akun yang ditemukan.',
-      ]);
-    }
-
-    // Clear rate limiter on successful login
     RateLimiter::clear($throttleKey);
+    Log::info("Login attempt [SUCCESS] - User: {$user->email}, Role: {$role}, IP: {$request->ip()}");
 
-    // Log the login attempt (successful)
-    $this->logLoginAttempt($user, $request, true);
-
-    // Authenticate user
-    Auth::login($user, $remember);
-
-    // Regenerate session for security
+    Auth::guard($guard)->login($user, $remember);
     $request->session()->regenerate();
 
-    // Redirect based on role
-    return $this->redirectBasedOnRole($user);
-  }
-
-  /**
-   * Find user based on role and identifier (NISN for murid, NIP for guru, ID for orang tua)
-   */
-  private function findUserByRoleAndIdentifier(string $role, string $identifier): ?User
-  {
-    $query = User::where('role', $role);
-
-    // Build search conditions based on role
-    $query->where(function ($q) use ($identifier, $role) {
-      // Always allow login with email
-      $q->where('email', $identifier);
-
-      // For murid: search by NISN (nisn field) or NIS (device_user_id)
-      if ($role === User::ROLE_MURID) {
-        $q->orWhere('nisn', $identifier)
-          ->orWhere('device_user_id', $identifier);
-      }
-      // For guru: search by NIP (device_user_id)
-      elseif ($role === User::ROLE_GURU) {
-        $q->orWhere('device_user_id', $identifier);
-      }
-      // For orang tua: search by ID Orang Tua (device_user_id)
-      elseif ($role === User::ROLE_ORANGTUA) {
-        $q->orWhere('device_user_id', $identifier);
-      }
-    });
-
-    return $query->first();
-  }
-
-  /**
-   * Redirect user based on their role
-   */
-  private function redirectBasedOnRole(User $user)
-  {
-    return match ($user->role) {
-      User::ROLE_MURID => redirect()->intended(route('dashboard.murid')),
-      User::ROLE_GURU => redirect()->intended(route('dashboard.guru')),
-      User::ROLE_ORANGTUA => redirect()->intended(route('dashboard.orangtua')),
-      User::ROLE_ADMIN => redirect()->intended(route('admin.dashboard')),
-      default => redirect()->intended(route('dashboard')),
-    };
-  }
-
-  /**
-   * Log login attempt for security monitoring
-   */
-  private function logLoginAttempt(User $user, Request $request, bool $successful): void
-  {
-    // You can extend this to log to database or file
-    // For now, we'll use Laravel's logging
-    $status = $successful ? 'SUCCESS' : 'FAILED';
-    \Log::info("Login attempt [{$status}] - User: {$user->email}, Role: {$user->role}, IP: {$request->ip()}, User-Agent: {$request->userAgent()}");
+    return redirect()->intended(route($redirectRoute));
   }
 
   /**
@@ -299,13 +230,14 @@ class AuthController extends Controller
    */
   public function logout(Request $request)
   {
-    // Log logout
-    if (Auth::check()) {
-      $user = Auth::user();
-      \Log::info("Logout - User: {$user->email}, Role: {$user->role}, IP: {$request->ip()}");
+    foreach (['web', 'guru', 'admin', 'ortu'] as $guard) {
+      if (Auth::guard($guard)->check()) {
+        $user = Auth::guard($guard)->user();
+        Log::info("Logout - User: {$user->email}, Guard: {$guard}, IP: {$request->ip()}");
+        Auth::guard($guard)->logout();
+        break;
+      }
     }
-
-    Auth::logout();
 
     $request->session()->invalidate();
     $request->session()->regenerateToken();

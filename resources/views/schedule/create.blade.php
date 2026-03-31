@@ -111,12 +111,12 @@
                     <div class="flex items-center gap-3 pl-4 border-l border-gray-200 dark:border-gray-700">
                         <div class="text-right hidden sm:block">
                             <p class="text-sm font-medium text-gray-900 dark:text-white">
-                                {{ auth()->user()->name }}</p>
+                                {{ $user->name }}</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">Guru</p>
                         </div>
                         <div
                             class="h-10 w-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold">
-                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                            {{ strtoupper(substr($user->name, 0, 1)) }}
                         </div>
                     </div>
                 </div>
@@ -239,7 +239,7 @@
                                 Guru Pengajar <span class="text-red-500">*</span>
                             </label>
                             <input type="text" id="teacher" name="teacher"
-                                value="{{ old('teacher', auth()->user()->name) }}" required
+                                value="{{ old('teacher', $user->name) }}" required
                                 class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent @error('teacher') border-red-500 @enderror"
                                 placeholder="Masukkan nama guru">
                             @error('teacher')

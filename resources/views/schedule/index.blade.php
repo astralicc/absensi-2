@@ -5,15 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jadwal Pelajaran - Absensi SMKN 12 Jakarta</title>
-<script src="{{ asset('js/dashboard.js') }}"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        };
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="icon" href="/logo.png">
-   
-    <!-- Reuse the same scroll/glass styling as Riwayat Absensi -->
     <link rel="stylesheet" href="{{ asset('css/dashboard/riwayatAbsen.css') }}">
-
 </head>
 
 <body class="text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-950 min-h-screen">
@@ -37,7 +39,7 @@
                 </a>
 
                 
-                @if(auth()->user()->isGuru())
+                @if(Auth::guard('guru')->check())
                     <a href="{{ route('attendance.manage') }}" class="flex items-center px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition">
                         <i class="fa-solid fa-clipboard-list w-6 mr-3"></i>
                         <span>Kelola Absensi</span>
@@ -55,7 +57,7 @@
                         <span>Laporan</span>
                     </a>
 
-                @elseif(auth()->user()->isOrangTua())
+                @elseif(Auth::guard('ortu')->check())
                     <a href="{{ route('children.data') }}" class="flex items-center px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition">
                         <i class="fa-solid fa-child w-6 mr-3"></i>
                         <span>Data Anak</span>
@@ -130,11 +132,11 @@
                     <!-- User Profile -->
                     <div class="flex items-center gap-3 pl-4 border-l border-gray-200 dark:border-gray-700">
                         <div class="text-right hidden sm:block">
-                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ auth()->user()->name }}</p>
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $user->name }}</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">Siswa</p>
                         </div>
                         <div class="h-10 w-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold">
-                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                            {{ strtoupper(substr($user->name, 0, 1)) }}
                         </div>
                     </div>
                 </div>
@@ -211,6 +213,7 @@
     <!-- Mobile Sidebar Overlay -->
     <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="closeSidebar()"></div>
     
+    <script src="{{ asset('js/dashboard.js') }}"></script>
+    <script src="{{ asset('js/schedule/kelolaJadwal.js') }}"></script>
 </body>
-<script src="{{ asset('js/schedule/kelolaJadwal.js') }}"></script>
 </html>

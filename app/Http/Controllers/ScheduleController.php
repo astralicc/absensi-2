@@ -14,7 +14,7 @@ class ScheduleController extends Controller
    */
   public function index()
   {
-    $user = Auth::user();
+    $user = Auth::guard('web')->user();
 
     // Get schedule data from database
     $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
@@ -24,7 +24,6 @@ class ScheduleController extends Controller
       $daySchedules = Schedule::forDay($day)->get();
 
       if ($daySchedules->isEmpty()) {
-        // If no data in database, return empty array for that day
         $schedule[$day] = [];
       } else {
         $schedule[$day] = $daySchedules->map(function ($item) {
@@ -40,10 +39,21 @@ class ScheduleController extends Controller
 
     $today = now()->locale('id')->dayName;
 
+    // Unread announcements count
+    $unreadCount = 0;
+    if ($user) {
+      $unreadCount = Announcement::active()
+        ->whereDoesntHave('readBy', function ($q) use ($user) {
+          $q->where('user_id', $user->id);
+        })
+        ->count();
+    }
+
     return view('schedule.index', [
       'schedule' => $schedule,
       'today' => $today,
       'user' => $user,
+      'unreadCount' => $unreadCount,
     ]);
   }
 
@@ -72,7 +82,7 @@ class ScheduleController extends Controller
 
     // Badge count for "Pengumuman" menu (same logic as AnnouncementController)
     $unreadCount = 0;
-    $user = Auth::user();
+    $user = Auth::guard('guru')->user();
     if ($user) {
       $unreadCount = Announcement::active()
         ->whereDoesntHave('readBy', function ($q) use ($user) {
@@ -82,6 +92,7 @@ class ScheduleController extends Controller
     }
 
     return view('schedule.manage', [
+      'user' => $user,
       'schedules' => $schedules,
       'day' => $day,
       'search' => $search,

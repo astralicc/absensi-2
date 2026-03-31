@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use App\Models\User;
+use App\Models\Guru;
+use App\Models\Siswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,15 +15,13 @@ class DashboardController extends Controller
    */
   public function murid()
   {
-    $user = Auth::user();
+    $user = Auth::guard('web')->user();
 
-    // Get recent attendances for the student
     $recentAttendances = Attendance::where('user_id', $user->id)
       ->orderBy('date', 'desc')
       ->take(5)
       ->get();
 
-    // Calculate statistics for current month
     $totalDays = Attendance::where('user_id', $user->id)
       ->whereMonth('date', now()->month)
       ->count();
@@ -50,77 +49,38 @@ class DashboardController extends Controller
    */
   public function guru()
   {
-    $user = Auth::user();
-    $isWaliKelas = $user->kelas_wali !== null;
-
-    if ($isWaliKelas) {
-      // Wali Kelas Dashboard - filter students by kelas_wali and jurusan_wali
-      $query = User::where('role', User::ROLE_MURID)
-        ->where('class', $user->kelas_wali);
-      if ($user->jurusan_wali) {
-        $query->where('jurusan', $user->jurusan_wali);
-      }
-      $students = $query->orderBy('name')->get();
-      $totalStudents = $students->count();
-
-      // Today's attendance for wali class students only
-      $studentIds = $students->pluck('id');
-      $todayAttendances = Attendance::where('date', today())
-        ->whereIn('user_id', $studentIds)
-        ->with('user')
-        ->orderBy('check_in', 'desc')
-        ->get();
-
-      $presentToday = $todayAttendances->whereNotNull('check_in')->count();
-      $absentToday = $totalStudents - $presentToday;
-
-      // Monthly stats for wali class
-      $monthlyStats = $this->getWaliMonthlyStats($studentIds);
-
-      return view('dashboard', [
-        'user' => $user,
-        'todayAttendances' => $todayAttendances,
-        'students' => $students,
-        'stats' => [
-          'totalStudents' => $totalStudents,
-          'presentToday' => $presentToday,
-          'absentToday' => $absentToday,
-          'monthlyAverage' => $monthlyStats['average'],
-          'totalAttendanceRecords' => $monthlyStats['totalRecords'],
-          'isWaliKelas' => true,
-          'kelasWali' => $user->kelas_wali,
-          'jurusanWali' => $user->jurusan_wali,
-        ]
-      ]);
-    } else {
-      // Regular Guru Dashboard - all students
-      $students = User::where('role', User::ROLE_MURID)->get();
-      $totalStudents = $students->count();
-
-      $todayAttendances = Attendance::where('date', today())
-        ->with('user')
-        ->orderBy('check_in', 'desc')
-        ->get();
-
-      $presentToday = $todayAttendances->whereNotNull('check_in')->count();
-      $absentToday = $totalStudents - $presentToday;
-
-      $monthlyStats = $this->getGuruMonthlyStats();
-
-      return view('dashboard', [
-        'user' => $user,
-        'todayAttendances' => $todayAttendances,
-        'students' => $students,
-        'stats' => [
-          'totalStudents' => $totalStudents,
-          'presentToday' => $presentToday,
-          'absentToday' => $absentToday,
-          'monthlyAverage' => $monthlyStats['average'],
-          'totalAttendanceRecords' => $monthlyStats['totalRecords'],
-          'isWaliKelas' => false,
-        ]
-      ]);
+    $user = Auth::guard('guru')->user();
+    
+    if ($user->isWaliKelas()) {
+      return redirect()->route('wali-kelas.index');
     }
+
+    $students = Siswa::all();
+    $totalStudents = $students->count();
+
+    $todayAttendances = Attendance::where('date', today())
+      ->with('siswa')
+      ->orderBy('check_in', 'desc')
+      ->get();
+
+    $presentToday = $todayAttendances->whereNotNull('check_in')->count();
+    $absentToday = $totalStudents - $presentToday;
+
+    $monthlyStats = $this->getGuruMonthlyStats();
+
+    return view('dashboard', [
+      'user' => $user,
+      'todayAttendances' => $todayAttendances,
+      'students' => $students,
+      'stats' => [
+        'totalStudents' => $totalStudents,
+        'presentToday' => $presentToday,
+        'absentToday' => $absentToday,
+        'monthlyAverage' => $monthlyStats['average'],
+        'totalAttendanceRecords' => $monthlyStats['totalRecords'],
+        'isWaliKelas' => false,
+      ]
+    ]);
   }
 
   /**
@@ -128,24 +88,17 @@ class DashboardController extends Controller
    */
   public function orangTua()
   {
-    $user = Auth::user();
+    $user = Auth::guard('ortu')->user();
 
-    // Get children of this parent
-    $children = User::where('parent_id', $user->id)
-      ->where('role', User::ROLE_MURID)
-      ->get();
-
-    // If parent has children, show first child's data
+    $children = Siswa::where('parent_id', $user->id)->get();
     $child = $children->first();
 
     if ($child) {
-      // Get child's recent attendances
       $childAttendances = Attendance::where('user_id', $child->id)
         ->orderBy('date', 'desc')
         ->take(5)
         ->get();
 
-      // Calculate child's statistics
       $totalDays = Attendance::where('user_id', $child->id)
         ->whereMonth('date', now()->month)
         ->count();
@@ -176,7 +129,6 @@ class DashboardController extends Controller
       ]);
     }
 
-    // If no children found, show empty state
     return view('dashboard', [
       'user' => $user,
       'child' => null,
@@ -191,31 +143,21 @@ class DashboardController extends Controller
     ]);
   }
 
-  /**
-   * Get monthly statistics for Guru dashboard (all students)
-   */
   private function getGuruMonthlyStats(): array
   {
     $startOfMonth = now()->startOfMonth();
     $endOfMonth = now()->endOfMonth();
 
     $totalRecords = Attendance::whereBetween('date', [$startOfMonth, $endOfMonth])->count();
-
     $presentRecords = Attendance::whereBetween('date', [$startOfMonth, $endOfMonth])
       ->whereNotNull('check_in')
       ->count();
 
     $average = $totalRecords > 0 ? round(($presentRecords / $totalRecords) * 100) : 0;
 
-    return [
-      'average' => $average,
-      'totalRecords' => $totalRecords,
-    ];
+    return ['average' => $average, 'totalRecords' => $totalRecords];
   }
 
-  /**
-   * Get monthly statistics for Wali Kelas (specific class students)
-   */
   private function getWaliMonthlyStats($studentIds): array
   {
     $startOfMonth = now()->startOfMonth();
@@ -232,30 +174,28 @@ class DashboardController extends Controller
 
     $average = $totalRecords > 0 ? round(($presentRecords / $totalRecords) * 100) : 0;
 
-    return [
-      'average' => $average,
-      'totalRecords' => $totalRecords,
-    ];
+    return ['average' => $average, 'totalRecords' => $totalRecords];
   }
 
   /**
-   * Show default dashboard
+   * Show default dashboard - redirect based on guard
    */
   public function index()
   {
-    $user = Auth::user();
-
-    // Redirect based on role
-    if ($user->isMurid()) {
+    if (Auth::guard('web')->check()) {
       return redirect()->route('dashboard.murid');
-    } elseif ($user->isWaliKelas()) {
-      return redirect()->route('wali-kelas.index');
-    } elseif ($user->isGuru()) {
+    } elseif (Auth::guard('guru')->check()) {
+      $guru = Auth::guard('guru')->user();
+      if ($guru->isWaliKelas()) {
+        return redirect()->route('wali-kelas.index');
+      }
       return redirect()->route('dashboard.guru');
-    } elseif ($user->isOrangTua()) {
+    } elseif (Auth::guard('ortu')->check()) {
       return redirect()->route('dashboard.orangtua');
+    } elseif (Auth::guard('admin')->check()) {
+      return redirect()->route('admin.dashboard');
     }
 
-    return view('dashboard', ['user' => $user]);
+    return redirect()->route('login');
   }
 }

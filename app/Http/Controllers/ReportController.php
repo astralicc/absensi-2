@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use App\Models\User;
+use App\Models\Siswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Exports\AbsensiExport;
@@ -16,14 +16,14 @@ class ReportController extends Controller
    */
   public function index(Request $request)
   {
-    $user = Auth::user();
+    $user = Auth::guard('guru')->user();
 
     // Get filter parameters
     $month = $request->get('month', now()->month);
     $year = $request->get('year', now()->year);
 
     // Get all students
-    $students = User::where('role', User::ROLE_MURID)->get();
+    $students = Siswa::all();
 
     // Calculate attendance statistics for each student
     $studentReports = [];

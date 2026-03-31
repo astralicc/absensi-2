@@ -74,15 +74,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm">
-                        <div class="flex items-center gap-3">
-                            <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-300"><i class="fa-solid fa-phone"></i></span>
-                            <div>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Ada nomor HP</p>
-                                <p class="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{{ $guruWithPhoneCount }}</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">

@@ -3,7 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Attendance;
-use App\Models\User;
+use App\Models\Siswa;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -22,7 +22,6 @@ class RekapAbsensiExport implements FromCollection, WithHeadings, WithMapping
     {
         $query = Attendance::query()
             ->with('user')
-            ->whereHas('user', fn ($q) => $q->where('role', User::ROLE_MURID))
             ->whereBetween('date', [$this->dateFrom, $this->dateTo])
             ->orderBy('date')
             ->orderBy('user_id');

@@ -13,7 +13,7 @@ class AnnouncementController extends Controller
    */
   public function index(Request $request)
   {
-    $user = Auth::user();
+    $user = $this->getAuthUser();
 
     // Get filter category from request
     $category = $request->get('category', 'all');
@@ -52,7 +52,7 @@ class AnnouncementController extends Controller
    */
   public function show($id)
   {
-    $user = Auth::user();
+    $user = $this->getAuthUser();
 
     // Find announcement by ID from database
     $announcement = Announcement::active()->find($id);
@@ -128,7 +128,7 @@ class AnnouncementController extends Controller
       'category' => $validated['category'],
       'priority' => $validated['priority'],
       'date' => $validated['date'],
-      'author' => Auth::user()->name,
+      'author' => Auth::guard('admin')->user()->name,
       'is_active' => $validated['is_active'] ?? true,
     ]);
 
@@ -185,5 +185,15 @@ class AnnouncementController extends Controller
 
     return redirect()->route('admin.announcements.index')
       ->with('success', 'Pengumuman berhasil dihapus!');
+  }
+
+  private function getAuthUser()
+  {
+    foreach (['web', 'guru', 'admin', 'ortu'] as $guard) {
+      if (Auth::guard($guard)->check()) {
+        return Auth::guard($guard)->user();
+      }
+    }
+    return null;
   }
 }

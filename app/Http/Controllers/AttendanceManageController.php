@@ -3,29 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use App\Models\User;
+use App\Models\Siswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AttendanceManageController extends Controller
 {
-  /**
-   * Show attendance management page for Guru (Teacher)
-   */
   public function index(Request $request)
   {
-    $user = Auth::user();
+    $user = Auth::guard('guru')->user();
     $date = $request->get('date', today()->format('Y-m-d'));
 
-    // Get students filtered by teacher's kelas_wali
-    $query = User::where('role', User::ROLE_MURID)
-      ->orderBy('name');
+    $query = Siswa::orderBy('name');
 
-    // If teacher has kelas_wali assigned, filter by that class
     if ($user->kelas_wali) {
       $query->where('class', $user->kelas_wali);
-      
-      // If teacher also has jurusan_wali, filter by that too
       if ($user->jurusan_wali) {
         $query->where('jurusan', $user->jurusan_wali);
       }
@@ -33,12 +25,10 @@ class AttendanceManageController extends Controller
 
     $students = $query->get();
 
-    // Get attendance records for selected date
     $attendances = Attendance::where('date', $date)
       ->pluck('check_in', 'user_id')
       ->toArray();
 
-    // Calculate statistics
     $totalStudents = $students->count();
     $presentCount = count(array_filter($attendances));
     $absentCount = $totalStudents - $presentCount;
@@ -56,13 +46,10 @@ class AttendanceManageController extends Controller
     ]);
   }
 
-  /**
-   * Mark student attendance
-   */
   public function markAttendance(Request $request)
   {
     $request->validate([
-      'user_id' => 'required|exists:users,id',
+      'user_id' => 'required|exists:siswa,id',
       'date' => 'required|date',
       'status' => 'required|in:present,absent',
     ]);
@@ -72,18 +59,11 @@ class AttendanceManageController extends Controller
     $status = $request->status;
 
     if ($status === 'present') {
-      // Mark as present (check in)
       Attendance::updateOrCreate(
-        [
-          'user_id' => $userId,
-          'date' => $date,
-        ],
-        [
-          'check_in' => now(),
-        ]
+        ['user_id' => $userId, 'date' => $date],
+        ['check_in' => now()]
       );
     } else {
-      // Mark as absent (remove check_in)
       Attendance::where('user_id', $userId)
         ->where('date', $date)
         ->delete();
@@ -92,9 +72,6 @@ class AttendanceManageController extends Controller
     return redirect()->back()->with('success', 'Kehadiran berhasil diperbarui');
   }
 
-  /**
-   * Bulk mark attendance
-   */
   public function bulkMarkAttendance(Request $request)
   {
     $request->validate([
@@ -108,13 +85,8 @@ class AttendanceManageController extends Controller
     foreach ($attendances as $userId => $status) {
       if ($status === 'present') {
         Attendance::updateOrCreate(
-          [
-            'user_id' => $userId,
-            'date' => $date,
-          ],
-          [
-            'check_in' => now(),
-          ]
+          ['user_id' => $userId, 'date' => $date],
+          ['check_in' => now()]
         );
       } else {
         Attendance::where('user_id', $userId)

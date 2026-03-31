@@ -15,7 +15,11 @@
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="icon" href="/logo.png">
-    <link rel="stylesheet" href="{{ asset('css/teacher/laporanGuru.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/dashboard/style.css') }}">
+    <style>
+        body { --nav-hover-color: #22c55e; }
+    </style>
+    <script src="{{ asset('js/wali-kelas-sidebar.js') }}"></script>
 </head>
 
 <body class="text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-950 min-h-screen">
@@ -55,7 +59,7 @@
                     <span>Kelola Jadwal</span>
                 </a>
                 <a href="{{ route('reports.index') }}"
-                    class="flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 bg-purple-50 dark:bg-purple-900/20 rounded-lg border-l-4 border-purple-500">
+                    class="flex items-center px-4 py-3 text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 rounded-lg border-l-4 border-green-500">
                     <i class="fa-solid fa-chart-line w-6 mr-3"></i>
                     <span class="font-medium">Laporan</span>
                 </a>

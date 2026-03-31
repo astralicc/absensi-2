@@ -41,7 +41,7 @@
                 </a>
 
 
-                @if (auth()->user()->isGuru())
+                @if (Auth::guard('guru')->check())
                     <a href="{{ route('attendance.manage') }}"
                         class="flex items-center px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition">
                         <i class="fa-solid fa-clipboard-list w-6 mr-3"></i>
@@ -62,7 +62,7 @@
                         <i class="fa-solid fa-chart-line w-6 mr-3"></i>
                         <span>Laporan</span>
                     </a>
-                @elseif(auth()->user()->isOrangTua())
+                @elseif(Auth::guard('ortu')->check())
                     <a href="{{ route('children.data') }}"
                         class="flex items-center px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition">
                         <i class="fa-solid fa-child w-6 mr-3"></i>
@@ -147,20 +147,20 @@
                     <!-- User Profile -->
                     <div class="flex items-center gap-3 pl-4 border-l border-gray-200 dark:border-gray-700">
                         <div class="text-right hidden sm:block">
-                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ auth()->user()->name }}</p>
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $user->name }}</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">
-                                @if (auth()->user()->isMurid())
+                                @if (Auth::guard('web')->check())
                                     Siswa
-                                @elseif(auth()->user()->isGuru())
+                                @elseif(Auth::guard('guru')->check())
                                     Guru
-                                @elseif(auth()->user()->isOrangTua())
+                                @elseif(Auth::guard('ortu')->check())
                                     Orang Tua
                                 @endif
                             </p>
                         </div>
                         <div
                             class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                            {{ strtoupper(substr($user->name, 0, 1)) }}
                         </div>
                     </div>
                 </div>

@@ -26,7 +26,7 @@ return new class extends Migration
     // Table to track which users have read which announcements
     Schema::create('announcement_reads', function (Blueprint $table) {
       $table->id();
-      $table->foreignId('user_id')->constrained()->onDelete('cascade');
+      $table->unsignedBigInteger('user_id');
       $table->foreignId('announcement_id')->constrained()->onDelete('cascade');
       $table->timestamp('read_at');
       $table->timestamps();

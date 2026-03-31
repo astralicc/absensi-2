@@ -3,37 +3,28 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use App\Models\User;
+use App\Models\Siswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ChildAttendanceController extends Controller
 {
-  /**
-   * Show child attendance history for Orang Tua (Parent)
-   */
   public function index(Request $request)
   {
-    $user = Auth::user();
+    $user = Auth::guard('ortu')->user();
 
-    // Get filter parameters
     $childId = $request->get('child_id');
     $month = $request->get('month', now()->month);
     $year = $request->get('year', now()->year);
 
-    // Get all children of this parent
-    $children = User::where('parent_id', $user->id)
-      ->where('role', User::ROLE_MURID)
-      ->get();
+    $children = Siswa::where('parent_id', $user->id)->get();
 
-    // If no child selected, use first child
     if (!$childId && $children->count() > 0) {
       $childId = $children->first()->id;
     }
 
     $selectedChild = $children->where('id', $childId)->first();
 
-    // Get attendance records
     $attendances = collect();
     if ($selectedChild) {
       $attendances = Attendance::where('user_id', $selectedChild->id)
@@ -43,7 +34,6 @@ class ChildAttendanceController extends Controller
         ->get();
     }
 
-    // Calculate statistics
     $totalDays = $attendances->count();
     $presentDays = $attendances->whereNotNull('check_in')->count();
     $absentDays = $totalDays - $presentDays;
@@ -53,7 +43,6 @@ class ChildAttendanceController extends Controller
 
     $attendanceRate = $totalDays > 0 ? round(($presentDays / $totalDays) * 100) : 0;
 
-    // Get available months for filter (SQLite compatible)
     $availableMonths = collect();
     if ($selectedChild) {
       $availableMonths = Attendance::where('user_id', $selectedChild->id)
@@ -86,21 +75,15 @@ class ChildAttendanceController extends Controller
     ]);
   }
 
-  /**
-   * Show attendance calendar view
-   */
   public function calendar(Request $request)
   {
-    $user = Auth::user();
+    $user = Auth::guard('ortu')->user();
 
     $childId = $request->get('child_id');
     $month = $request->get('month', now()->month);
     $year = $request->get('year', now()->year);
 
-    // Get all children
-    $children = User::where('parent_id', $user->id)
-      ->where('role', User::ROLE_MURID)
-      ->get();
+    $children = Siswa::where('parent_id', $user->id)->get();
 
     if (!$childId && $children->count() > 0) {
       $childId = $children->first()->id;
@@ -108,7 +91,6 @@ class ChildAttendanceController extends Controller
 
     $selectedChild = $children->where('id', $childId)->first();
 
-    // Get attendance for calendar
     $attendances = collect();
     if ($selectedChild) {
       $attendances = Attendance::where('user_id', $selectedChild->id)
@@ -120,7 +102,6 @@ class ChildAttendanceController extends Controller
         });
     }
 
-    // Generate calendar data
     $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
     $firstDayOfMonth = date('N', strtotime("{$year}-{$month}-01"));
 

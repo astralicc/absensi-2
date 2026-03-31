@@ -38,19 +38,19 @@ return [
     'guards' => [
         'web' => [
             'driver' => 'session',
-            'provider' => 'users',
-        ],
-        'murid' => [
-            'driver' => 'session',
-            'provider' => 'users',
+            'provider' => 'siswa',
         ],
         'guru' => [
             'driver' => 'session',
-            'provider' => 'users',
+            'provider' => 'guru',
         ],
-        'orangtua' => [
+        'admin' => [
             'driver' => 'session',
-            'provider' => 'users',
+            'provider' => 'admins',
+        ],
+        'ortu' => [
+            'driver' => 'session',
+            'provider' => 'orang_tua',
         ],
     ],
 
@@ -59,28 +59,27 @@ return [
     | User Providers
     |--------------------------------------------------------------------------
     |
-    | All authentication guards have a user provider, which defines how the
-    | users are actually retrieved out of your database or other storage
-    | system used by the application. Typically, Eloquent is utilized.
-    |
-    | If you have multiple user tables or models you may configure multiple
-    | providers to represent the model / table. These providers may then
-    | be assigned to any extra authentication guards you have defined.
-    |
-    | Supported: "database", "eloquent"
+    | Each role has its own provider pointing to its own model/table.
     |
     */
 
     'providers' => [
-        'users' => [
+        'siswa' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', App\Models\User::class),
+            'model' => App\Models\Siswa::class,
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'guru' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Guru::class,
+        ],
+        'admins' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Admin::class,
+        ],
+        'orang_tua' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\OrangTua::class,
+        ],
     ],
 
     /*

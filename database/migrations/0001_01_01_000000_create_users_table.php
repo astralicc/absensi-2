@@ -6,17 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        // Create siswa table (replaces old users table)
+        Schema::create('siswa', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('nis')->nullable()->unique();
+            $table->string('nisn')->nullable();
+            $table->unsignedBigInteger('parent_id')->nullable();
+            $table->string('phone')->nullable();
+            $table->text('address')->nullable();
+            $table->enum('class', ['X', 'XI', 'XII'])->nullable();
+            $table->enum('jurusan', ['RPL', 'BR', 'AKL', 'MP'])->nullable();
+            $table->enum('gender', ['L', 'P'])->nullable();
+            $table->date('birth_date')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
@@ -37,12 +43,9 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('siswa');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }

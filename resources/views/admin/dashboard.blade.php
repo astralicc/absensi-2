@@ -34,7 +34,7 @@
                     <div class="relative p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Panel administrator</p>
-                            <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mt-1 break-words">Selamat datang, {{ auth()->user()->name }}</h2>
+                            <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mt-1 break-words">Selamat datang, {{ Auth::user()?->name ?? 'Admin' }}</h2>
                             <p class="text-gray-600 dark:text-gray-400 mt-2 max-w-xl">Kontrol sistem absensi SMKN 12 Jakarta — ringkasan pengguna dan aksi cepat.</p>
                         </div>
                     </div>

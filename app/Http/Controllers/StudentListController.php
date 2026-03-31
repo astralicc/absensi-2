@@ -3,38 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use App\Models\User;
+use App\Models\Siswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class StudentListController extends Controller
 {
-  /**
-   * Show student list for Guru (Teacher)
-   */
   public function index(Request $request)
   {
-    $user = Auth::user();
+    // Works for both guru guard and admin guard
+    $user = Auth::guard('guru')->user();
 
-    // Get filter parameters
     $search = $request->get('search');
     $sortBy = $request->get('sort_by', 'name');
     $sortOrder = $request->get('sort_order', 'asc');
 
-    // Query students
-    $query = User::where('role', User::ROLE_MURID);
+    $query = Siswa::query();
 
-    // If user is a guru with wali kelas assignment, filter by their class and major
-    if ($user->role === User::ROLE_GURU && $user->kelas_wali) {
+    if ($user && $user->kelas_wali) {
       $query->where('class', $user->kelas_wali);
-      
-      // If guru has jurisdiction assignment, filter by jurisdiction
       if ($user->jurusan_wali) {
         $query->where('jurusan', $user->jurusan_wali);
       }
     }
 
-    // Apply search filter
     if ($search) {
       $query->where(function ($q) use ($search) {
         $q->where('name', 'like', "%{$search}%")
@@ -43,7 +35,6 @@ class StudentListController extends Controller
       });
     }
 
-    // Apply sorting - only allow valid columns
     $validSortColumns = ['name', 'id', 'nisn'];
     if (in_array($sortBy, $validSortColumns)) {
       $query->orderBy($sortBy, $sortOrder);
@@ -51,10 +42,8 @@ class StudentListController extends Controller
       $query->orderBy('name', 'asc');
     }
 
-    // Get students with pagination
     $students = $query->paginate(20);
 
-    // Calculate attendance statistics for each student
     $studentStats = [];
     foreach ($students as $student) {
       $totalDays = Attendance::where('user_id', $student->id)
@@ -87,23 +76,16 @@ class StudentListController extends Controller
     ]);
   }
 
-  /**
-   * Show student detail
-   */
   public function show($id)
   {
-    $user = Auth::user();
-    $student = User::where('role', User::ROLE_MURID)
-      ->where('id', $id)
-      ->firstOrFail();
+    $user = Auth::guard('guru')->user();
+    $student = Siswa::findOrFail($id);
 
-    // Get attendance history
     $attendances = Attendance::where('user_id', $student->id)
       ->orderBy('date', 'desc')
       ->take(30)
       ->get();
 
-    // Calculate monthly statistics
     $monthlyStats = [];
     for ($i = 1; $i <= 12; $i++) {
       $totalDays = Attendance::where('user_id', $student->id)

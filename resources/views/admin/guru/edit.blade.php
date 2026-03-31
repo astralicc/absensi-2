@@ -62,16 +62,24 @@
                             </div>
 
                             <!-- Contact Info -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="grid grid-cols-1 gap-6">
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Email *</label>
                                     <input type="email" name="email" value="{{ old('email', $guru->email) }}" required 
                                            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white transition">
                                 </div>
+                            </div>
+
+                            <!-- Informasi Tambahan -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">No. Telepon</label>
-                                    <input type="tel" name="phone" value="{{ old('phone', $guru->phone) }}" 
+                                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tanggal Lahir</label>
+                                    <input type="date" name="birth_date" value="{{ old('birth_date', $guru->birth_date ? $guru->birth_date->format('Y-m-d') : '') }}" 
                                            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white transition">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Alamat</label>
+                                    <textarea name="address" rows="4" placeholder="Masukkan alamat lengkap" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white transition resize-vertical">{{ old('address', $guru->address) }}</textarea>
                                 </div>
                             </div>
 

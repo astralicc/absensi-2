@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\DB;
 
 class Announcement extends Model
 {
@@ -26,30 +26,37 @@ class Announcement extends Model
   ];
 
   /**
-   * Users who have read this announcement
+   * Users who have read this announcement (direct query - no FK to users table)
    */
-  public function readBy(): BelongsToMany
+  public function readBy()
   {
-    return $this->belongsToMany(User::class, 'announcement_reads')
-      ->withPivot('read_at')
-      ->withTimestamps();
+    return $this->hasMany(AnnouncementRead::class);
   }
 
   /**
    * Check if a specific user has read this announcement
    */
-  public function isReadBy(User $user): bool
+  public function isReadBy($user): bool
   {
-    return $this->readBy()->where('user_id', $user->id)->exists();
+    return DB::table('announcement_reads')
+      ->where('announcement_id', $this->id)
+      ->where('user_id', $user->id)
+      ->exists();
   }
 
   /**
    * Mark as read by a user
    */
-  public function markAsReadBy(User $user): void
+  public function markAsReadBy($user): void
   {
     if (!$this->isReadBy($user)) {
-      $this->readBy()->attach($user->id, ['read_at' => now()]);
+      DB::table('announcement_reads')->insert([
+        'user_id' => $user->id,
+        'announcement_id' => $this->id,
+        'read_at' => now(),
+        'created_at' => now(),
+        'updated_at' => now(),
+      ]);
     }
   }
 

@@ -11,21 +11,19 @@ class WaliKelasMiddleware
 {
   /**
    * Handle an incoming request for wali kelas users only.
-   * Wali kelas = guru role + kelas_wali assigned
+   * Wali kelas = guru guard + kelas_wali assigned
    */
   public function handle(Request $request, Closure $next): Response
   {
-    $user = Auth::user();
+    $user = Auth::guard('guru')->user();
 
     if (!$user) {
       return redirect()->route('login');
     }
 
-    if (!$user->isGuru() || empty($user->kelas_wali)) {
-      // Regular guru -> dashboard.guru, others -> dashboard
-      $redirectRoute = $user->isGuru() ? 'dashboard.guru' : 'dashboard';
-      \Log::info("WaliKelasMiddleware blocked: User {$user->email} (role: {$user->role}, kelas_wali: {$user->kelas_wali}) -> {$redirectRoute}");
-      return redirect()->route($redirectRoute);
+    if (empty($user->kelas_wali)) {
+      \Log::info("WaliKelasMiddleware blocked: User {$user->email} (kelas_wali: {$user->kelas_wali}) -> dashboard.guru");
+      return redirect()->route('dashboard.guru');
     }
 
     return $next($request);

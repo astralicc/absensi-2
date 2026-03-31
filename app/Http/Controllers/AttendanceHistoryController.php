@@ -14,7 +14,7 @@ class AttendanceHistoryController extends Controller
    */
   public function index(Request $request)
   {
-    $user = Auth::user();
+    $user = Auth::guard('web')->user();
 
     // Get filter parameters
     $month = $request->get('month', now()->month);
@@ -47,6 +47,7 @@ class AttendanceHistoryController extends Controller
       ->get();
 
     return view('attendance.history', [
+      'user' => $user,
       'attendances' => $attendances,
       'stats' => [
         'totalDays' => $totalDays,
@@ -76,6 +77,7 @@ class AttendanceHistoryController extends Controller
     $settings = \App\Http\Controllers\AdminSettingController::getPublicSettings();
 
     return view('attendance.report', [
+      'user' => Auth::guard('web')->user(),
       'adminWhatsapp' => $settings['admin_whatsapp'] ?? '081234567890',
       'adminEmail' => $settings['admin_email'] ?? 'admin@smkn12jakarta.sch.id',
       'unreadCount' => 0,

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\OrangTua;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -17,15 +17,14 @@ class AdminParentController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email|unique:orang_tua,email',
             'password' => 'required|string|min:8|confirmed',
             'phone' => 'nullable|string|max:20',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
-        $validated['role'] = User::ROLE_ORANGTUA;
 
-        User::create($validated);
+        OrangTua::create($validated);
 
         return redirect()
             ->route('admin.users.quick')

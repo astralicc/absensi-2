@@ -14,11 +14,6 @@ class Attendance extends Model
         'status'
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'date' => 'date:Y-m-d',
         'check_in' => 'datetime:Y-m-d H:i:s',
@@ -26,10 +21,18 @@ class Attendance extends Model
     ];
 
     /**
-     * Get the user that owns the attendance.
+     * Get the siswa that owns the attendance.
+     */
+    public function siswa()
+    {
+        return $this->belongsTo(Siswa::class, 'user_id');
+    }
+
+    /**
+     * Alias for backward compatibility with views
      */
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Siswa::class, 'user_id');
     }
 }

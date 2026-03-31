@@ -15,16 +15,22 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="icon" href="/logo.png">
     <link rel="stylesheet" href="{{ asset('css/dashboard/style.css') }}">
+    @if (Auth::guard('guru')->check())
+    <script src="{{ asset('js/wali-kelas-sidebar.js') }}"></script>
+    @endif
     <link rel="stylesheet" href="{{ asset('css/dashboard/editProfile.css') }}">
 </head>
 
 <body class="text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-950 min-h-screen"
-style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->isGuru() ? '#22c55e' : (auth()->user()->isOrangTua() ? '#a855f7' : '#3b82f6') }};">
+style="--nav-hover-color: {{ Auth::guard('guru')->check() ? '#22c55e' : (Auth::guard('ortu')->check() ? '#a855f7' : '#3b82f6') }};">
 
     <!-- Sidebar & Main Content Wrapper -->
     <div class="flex h-screen overflow-hidden">
 
         <!-- Sidebar -->
+        @if (Auth::guard('guru')->check())
+            @include('dashboard.sidebar-wali', ['unreadCount' => $unreadCount ?? 0])
+        @else
         <aside id="sidebar"
             class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
             <!-- Logo -->
@@ -36,49 +42,12 @@ style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->is
             <!-- Navigation -->
             <nav class="mt-6 px-4 space-y-2">
                 <a href="{{ route('dashboard') }}"
-                    class="flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 {{ auth()->user()->isGuru() ? 'bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500' : (auth()->user()->isOrangTua() ? 'bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500' : 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500') }} rounded-lg">
+                    class="flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 {{ Auth::guard('guru')->check() ? 'bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500' : (Auth::guard('ortu')->check() ? 'bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500' : 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500') }} rounded-lg">
                     <i class="fa-solid fa-house w-6 mr-3"></i>
                     <span class="font-medium">Dashboard</span>
                 </a>
 
-
-@if (auth()->user()->isWaliKelas())
-                    <a href="{{ route('wali-kelas.index') }}" class="flex items-center px-4 py-3 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 text-green-700 dark:text-green-300 font-medium rounded-lg">
-                        <i class="fa-solid fa-users-rectangle w-6 mr-3"></i>
-                        <span>Dashboard Wali Kelas</span>
-                    </a>
-                    <a href="{{ route('students.index') }}" class="flex items-center px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition">
-                        <i class="fa-solid fa-users w-6 mr-3"></i>
-                        <span>Daftar Siswa Kelas</span>
-                    </a>
-
-                    <a href="{{ route('attendance.manage') }}"
-                        class="flex items-center px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition">
-                        <i class="fa-solid fa-clipboard-list w-6 mr-3"></i>
-                        <span>Kelola Absensi</span>
-                    </a>
-@elseif (auth()->user()->isGuru())
-                    <a href="{{ route('attendance.manage') }}"
-                        class="flex items-center px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition">
-                        <i class="fa-solid fa-clipboard-list w-6 mr-3"></i>
-                        <span>Kelola Absensi</span>
-                    </a>
-                    <a href="{{ route('students.index') }}"
-                        class="flex items-center px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition">
-                        <i class="fa-solid fa-users w-6 mr-3"></i>
-                        <span>Daftar Siswa</span>
-                    </a>
-                    <a href="{{ route('schedule.manage') }}"
-                        class="flex items-center px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition">
-                        <i class="fa-solid fa-calendar-days w-6 mr-3 text-gray-600 dark:text-gray-400"></i>
-                        <span>Kelola Jadwal</span>
-                    </a>
-                    <a href="{{ route('reports.index') }}"
-                        class="flex items-center px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition">
-                        <i class="fa-solid fa-chart-line w-6 mr-3"></i>
-                        <span>Laporan</span>
-                    </a>
-                @elseif(auth()->user()->isOrangTua())
+                @if(Auth::guard('ortu')->check())
                     <a href="{{ route('children.data') }}"
                         class="flex items-center px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition">
                         <i class="fa-solid fa-child w-6 mr-3"></i>
@@ -118,8 +87,6 @@ style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->is
                     @endif
                 </a>
 
-
-
             </nav>
 
             <!-- Bottom Actions -->
@@ -135,6 +102,7 @@ style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->is
                 </form>
             </div>
         </aside>
+        @endif
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col md:ml-64">
@@ -150,11 +118,11 @@ style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->is
 
                 <!-- Page Title -->
                 <h1 class="text-xl font-semibold text-gray-900 dark:text-white hidden md:block">
-                    @if (auth()->user()->isMurid())
+                    @if (Auth::guard('web')->check())
                         Dashboard Murid
-                    @elseif(auth()->user()->isGuru())
+                    @elseif(Auth::guard('guru')->check())
                         Dashboard Guru
-                    @elseif(auth()->user()->isOrangTua())
+                    @elseif(Auth::guard('ortu')->check())
                         Dashboard Orang Tua
                     @else
                         Dashboard
@@ -174,22 +142,22 @@ style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->is
                         <button onclick="toggleProfileDropdown()"
                             class="flex items-center gap-3 pl-4 border-l border-gray-200 dark:border-gray-700 hover:opacity-80 transition cursor-pointer bg-transparent border-none">
                             <div class="text-right hidden sm:block">
-                                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ auth()->user()->name }}
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $user->name }}
                                 </p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    @if (auth()->user()->isMurid())
+                                    @if (Auth::guard('web')->check())
                                         Siswa
-                                    @elseif(auth()->user()->isGuru())
+                                    @elseif(Auth::guard('guru')->check())
                                         Guru
-                                    @elseif(auth()->user()->isOrangTua())
+                                    @elseif(Auth::guard('ortu')->check())
                                         Orang Tua
                                     @endif
                                 </p>
                             </div>
 
 <div
-                                class="h-10 w-10 rounded-full {{ auth()->user()->isWaliKelas() || auth()->user()->isGuru() ? 'bg-green-500' : (auth()->user()->isOrangTua() ? 'bg-purple-500' : 'bg-blue-500') }} flex items-center justify-center text-white font-bold">
-                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+class="h-10 w-10 rounded-full {{ Auth::guard('guru')->check() ? 'bg-green-500' : (Auth::guard('ortu')->check() ? 'bg-purple-500' : 'bg-blue-500') }} flex items-center justify-center text-white font-bold">
+                                {{ strtoupper(substr($user->name, 0, 1)) }}
                             </div>
 
                             <i class="fa-solid fa-chevron-down text-gray-400 text-xs transition-transform duration-200"
@@ -200,13 +168,13 @@ style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->is
                         <div id="dropdownMenu"
                             class="dropdown-menu hidden absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
                             <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ auth()->user()->name }}
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $user->name }}
                                 </p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                    {{ auth()->user()->email }}</p>
+                                    {{ $user->email }}</p>
                             </div>
 
-                            @if (!auth()->user()->isGuru())
+                            @if (!Auth::guard('guru')->check())
                                 <button onclick="openEditProfileModal()"
                                     class="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-3">
                                     <i class="fa-solid fa-user-edit text-purple-500 w-5"></i>
@@ -235,18 +203,18 @@ style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->is
                 <!-- Welcome Card -->
                 <div class="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 mb-8 shadow-sm">
                     <div
-                        class="absolute inset-0 bg-gradient-to-br {{ auth()->user()->isGuru() ? 'from-green-500/10 via-emerald-500/5 to-transparent' : (auth()->user()->isOrangTua() ? 'from-purple-500/10 via-violet-500/5 to-transparent' : 'from-purple-500/10 via-violet-500/5 to-transparent') }} pointer-events-none">
+class="absolute inset-0 bg-gradient-to-br {{ Auth::guard('guru')->check() ? 'from-green-500/10 via-emerald-500/5 to-transparent' : (Auth::guard('ortu')->check() ? 'from-purple-500/10 via-violet-500/5 to-transparent' : 'from-blue-500/10 via-indigo-500/5 to-transparent') }} pointer-events-none">
                     </div>
                     <div class="relative p-6">
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                            Selamat Datang, {{ auth()->user()->name }}! 👋
+                            Selamat Datang, {{ $user->name }}! 👋
                         </h2>
                         <p class="text-gray-600 dark:text-gray-400 mt-2 max-w-xl">
-                            @if (auth()->user()->isMurid())
+                            @if (Auth::guard('web')->check())
                                 Semoga harimu menyenangkan dan produktif. Jangan lupa untuk selalu absen tepat waktu ya!
-                            @elseif(auth()->user()->isGuru())
+                            @elseif(Auth::guard('guru')->check())
                                 Selamat mengajar hari ini. Pantau kehadiran siswa dengan mudah melalui dashboard ini.
-                            @elseif(auth()->user()->isOrangTua())
+                            @elseif(Auth::guard('ortu')->check())
                                 Pantau kehadiran dan perkembangan putra/putri Anda melalui dashboard ini.
                             @endif
                         </p>
@@ -255,7 +223,7 @@ style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->is
 
                 <!-- Stats Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    @if (auth()->user()->isMurid())
+                    @if (Auth::guard('web')->check())
                         <div
                             class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
                             <div class="flex items-center justify-between mb-4">
@@ -306,18 +274,7 @@ style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->is
                                 {{ $stats['totalDays'] ?? 0 }}</h3>
                             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Hari sekolah</p>
                         </div>
-@elseif(auth()->user()->isGuru())
-                        @if(!empty($stats['isWaliKelas']))
-                            {{-- WALI KELAS DASHBOARD --}}
-                            <div class="col-span-full mb-6 p-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl text-white shadow-lg">
-                                <div class="flex items-center gap-3">
-                                    <i class="fa-solid fa-users-rectangle text-2xl"></i>
-                                    <div>
-                                        <h3 class="text-xl font-bold">Wali Kelas Dashboard</h3>
-                                        <p class="text-green-100">Kelas {{ $stats['kelasWali'] }} {{ $stats['jurusanWali'] ?? '' }} | {{ $stats['totalStudents'] }} siswa</p>
-                                    </div>
-                                </div>
-                            </div>
+@elseif(Auth::guard('guru')->check())
 
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                                 <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -380,32 +337,7 @@ style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->is
                                 </a>
                             </div>
 
-                            {{-- Top Absent Students --}}
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
-                                <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Siswa Absen Terbanyak</h4>
-                                <div class="space-y-3">
-                                    @php
-                                        $absentStudents = $todayAttendances->whereNull('check_in')->take(5);
-                                    @endphp
-                                    @forelse($absentStudents as $att)
-                                        <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                                            <div class="flex items-center gap-3">
-                                                <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
-                                                    <i class="fa-solid fa-user text-orange-600 dark:text-orange-400 text-sm"></i>
-                                                </div>
-                                                <span class="font-medium text-gray-900 dark:text-white">{{ $att->user->name }}</span>
-                                            </div>
-                                            <span class="text-sm text-orange-600 font-medium">Absen</span>
-                                        </div>
-                                    @empty
-                                        <div class="text-center py-4 text-gray-500 dark:text-gray-400">
-                                            Semua siswa hadir hari ini! 🎉
-                                        </div>
-                                    @endforelse
-                                </div>
-                            </div>
 
-                        @else
                             {{-- REGULAR GURU DASHBOARD --}}
                             <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
                                 <div class="flex items-center justify-between mb-4">
@@ -455,7 +387,7 @@ style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->is
                                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Tingkat kehadiran</p>
                             </div>
                         @endif
-                    @elseif(auth()->user()->isOrangTua())
+                    @elseif(Auth::guard('ortu')->check())
                         <div
                             class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
                             <div class="flex items-center justify-between mb-4">
@@ -516,21 +448,21 @@ style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->is
                     <div
                         class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                            @if (auth()->user()->isMurid())
+                            @if (Auth::guard('web')->check())
                                 Riwayat Absensi Terbaru
-                            @elseif(auth()->user()->isGuru())
+                            @elseif(Auth::guard('guru')->check())
                                 Absensi Hari Ini
-                            @elseif(auth()->user()->isOrangTua())
+                            @elseif(Auth::guard('ortu')->check())
                                 Riwayat Kehadiran Anak
                             @endif
                         </h3>
-                        @if (auth()->user()->isMurid())
+                        @if (Auth::guard('web')->check())
                             <a href="{{ route('attendance.history') }}"
                                 class="text-sm text-purple-600 hover:text-purple-700">Lihat Semua →</a>
-                        @elseif(auth()->user()->isGuru())
+                        @elseif(Auth::guard('guru')->check())
                             <a href="{{ route('attendance.manage') }}"
                                 class="text-sm text-green-600 hover:text-green-700">Lihat Semua →</a>
-                        @elseif(auth()->user()->isOrangTua())
+                        @elseif(Auth::guard('ortu')->check())
                             <a href="{{ route('children.attendance') }}"
                                 class="text-sm text-purple-600 hover:text-purple-700">Lihat Semua →</a>
                         @endif
@@ -538,7 +470,7 @@ style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->is
                     </div>
                     <div class="p-6">
                         <div class="space-y-4">
-                            @if (auth()->user()->isMurid() && isset($recentAttendances))
+                            @if (Auth::guard('web')->check() && isset($recentAttendances))
                                 @forelse($recentAttendances as $attendance)
                                     <div
                                         class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
@@ -571,7 +503,7 @@ style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->is
                                         Belum ada data absensi
                                     </div>
                                 @endforelse
-                            @elseif(auth()->user()->isGuru() && isset($todayAttendances))
+                            @elseif(Auth::guard('guru')->check() && isset($todayAttendances))
                                 @forelse($todayAttendances as $attendance)
                                     <div
                                         class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
@@ -604,7 +536,7 @@ style="--nav-hover-color: {{ auth()->user()->isWaliKelas() || auth()->user()->is
                                         Belum ada data absensi hari ini
                                     </div>
                                 @endforelse
-                            @elseif(auth()->user()->isOrangTua() && isset($childAttendances))
+                            @elseif(Auth::guard('ortu')->check() && isset($childAttendances))
                                 @forelse($childAttendances as $attendance)
                                     <div
                                         class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">

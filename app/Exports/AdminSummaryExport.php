@@ -3,7 +3,10 @@
 namespace App\Exports;
 
 use App\Models\Attendance;
-use App\Models\User;
+use App\Models\Siswa;
+use App\Models\Guru;
+use App\Models\OrangTua;
+use App\Models\Admin;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -18,12 +21,17 @@ class AdminSummaryExport implements FromCollection, WithHeadings
             ->whereMonth('date', $now->month)
             ->count();
 
+        $totalSiswa = Siswa::count();
+        $totalGuru = Guru::count();
+        $totalOrtu = OrangTua::count();
+        $totalAdmin = Admin::count();
+
         return collect([
-            ['Total pengguna', User::count()],
-            ['Murid', User::where('role', User::ROLE_MURID)->count()],
-            ['Guru', User::where('role', User::ROLE_GURU)->count()],
-            ['Orang tua', User::where('role', User::ROLE_ORANGTUA)->count()],
-            ['Administrator', User::where('role', User::ROLE_ADMIN)->count()],
+            ['Total pengguna', $totalSiswa + $totalGuru + $totalOrtu + $totalAdmin],
+            ['Murid', $totalSiswa],
+            ['Guru', $totalGuru],
+            ['Orang tua', $totalOrtu],
+            ['Administrator', $totalAdmin],
             ['Rekaman absensi (bulan berjalan)', $attMonth],
         ]);
     }

@@ -5,18 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Wali Kelas - Absensi SMKN 12 Jakarta</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
     <link rel="icon" href="/logo.png">
     <link rel="stylesheet" href="{{ asset('css/dashboard/style.css') }}">
     <style>
-        body { --nav-hover-color: #22c55e; }
+        :root {
+            --nav-hover-color: #22c55e;
+        }
+        .dark {
+            --nav-hover-color: #22c55e;
+        }
+        body {
+            --nav-hover-color: #22c55e;
+        }
     </style>
+    <script>
+        // Inline dark mode fallback (in case external JS fails)
+        function toggleDark() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            const icon = document.getElementById('darkIcon');
+            if (icon) {
+                icon.textContent = isDark ? '☀️' : '🌙';
+            }
+        }
+        function updateDarkIcon() {
+            const icon = document.getElementById('darkIcon');
+            if (icon && document.documentElement.classList.contains('dark')) {
+                icon.textContent = '☀️';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+            updateDarkIcon();
+        });
+    </script>
+    <script src="{{ asset('js/wali-kelas-sidebar.js') }}"></script>
 </head>
-<body class="text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-950 min-h-screen">
+<body class="text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-950 min-h-screen dark:text-gray-200 dark:bg-gray-950" style="--nav-hover-color: #22c55e;">
 
 <div class="flex h-screen overflow-hidden">
-    <!-- Sidebar (reuse dashboard sidebar logic) -->
-@include('dashboard.sidebar-wali', ['unreadCount' => $unreadCount])
+    <!-- Sidebar -->
+@include('wali-kelas.layouts.sidebar', ['unreadCount' => $unreadCount ?? 0])
 
 
 
@@ -32,9 +74,9 @@
             </h1>
             <!-- Profile dropdown (simplified) -->
             <div class="flex items-center gap-3">
-                <button onclick="toggleDark()" id="darkBtn" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:scale-110">
-                    <span id="darkIcon">🌙</span>
-                </button>
+        <button onclick="toggleDark()" id="darkBtn" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:scale-110 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+            <span id="darkIcon" class="text-xl">🌙</span>
+        </button>
                 <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                     <div class="h-8 w-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
                         {{ strtoupper(substr($user->name, 0, 1)) }}
@@ -214,30 +256,6 @@
 
 <!-- Overlay -->
 <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="closeSidebar()"></div>
-
-<script>
-    // Mobile sidebar toggle
-    document.getElementById('mobileMenuBtn').onclick = () => {
-        document.getElementById('sidebar').classList.toggle('-translate-x-full');
-        document.getElementById('sidebarOverlay').classList.toggle('hidden');
-    };
-
-    function closeSidebar() {
-        document.getElementById('sidebar').classList.add('-translate-x-full');
-        document.getElementById('sidebarOverlay').classList.add('hidden');
-    }
-
-    // Dark mode toggle
-    function toggleDark() {
-        document.documentElement.classList.toggle('dark');
-        localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-    }
-
-    // Load theme
-    if (localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-    }
-</script>
 
 </body>
 </html>
